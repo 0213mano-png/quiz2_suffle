@@ -1323,6 +1323,7 @@ function render(){
     instr.textContent = q.instruction || (q.type==='select-incorrect' ? '誤っている選択肢をすべて選んでください。' : '正しい選択肢をすべて選んでください。');
     card.appendChild(h);
     card.appendChild(instr);
+    
     const form = document.createElement('div');
     q.options.forEach((o, i) => {
       const opt = document.createElement('label');
@@ -1333,11 +1334,14 @@ function render(){
       cb.value = i;
       const span = document.createElement('div');
       const safeText = (o.text || '').replace(/</g,'&lt;');
-      span.innerHTML = `<strong>${o.label}.</strong> ${safeText}`;
+      // ★ ここから：labelを使わず、textのみを表示
+      span.innerHTML = `${safeText}`;
+      // ★ ここまで
       opt.appendChild(cb);
       opt.appendChild(span);
       form.appendChild(opt);
     });
+    
     card.appendChild(form);
     const controls = document.createElement('div');
     controls.className = 'controls';
@@ -1372,6 +1376,7 @@ function render(){
       const scoreArea = card.querySelector('.score') || (()=>{const s=document.createElement('div'); s.className='score'; card.appendChild(s); return s;})();
       scoreArea.textContent = exact ? '✅ 正解！' : '❌ 不正解';
     };
+    
     const btnReset = document.createElement('button');
     btnReset.textContent = 'リセット';
     btnReset.className = 'secondary';
@@ -1381,17 +1386,18 @@ function render(){
       form.querySelectorAll('.explain').forEach(e=>e.remove());
       const s = card.querySelector('.score'); if(s) s.remove();
     };
+    
     controls.appendChild(btn);
     controls.appendChild(btnReset);
     card.appendChild(controls);
     app.appendChild(card);
   });
+  
   const note = document.createElement('div');
   note.className = 'footer';
   note.innerHTML = '※ 自動抽出の都合で一部の肢が欠落・誤判定する可能性があります。原資料に照らして随時修正してください。';
   app.appendChild(note);
 }
+
 render();
-</script>
-</body>
-</html>
+
