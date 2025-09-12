@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>確認テスト 後半（解説付き・修正表示）—単一ファイル版</title>
+<style>
+ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif; line-height:1.6; margin:0; background:#f7f8fb;}
+ header{background:white; position:sticky; top:0; z-index:10; border-bottom:1px solid #e6e8ef;}
+ .wrap{max-width:980px; margin:0 auto; padding:20px;}
+ h1{font-size:22px; margin:8px 0;}
+ .card{background:white; border:1px solid #e6e8ef; border-radius:16px; padding:20px; box-shadow:0 1px 4px rgba(0,0,0,.04); margin:16px 0;}
+ .title{font-weight:700; margin-bottom:8px;}
+ .instruction{color:#444; margin-bottom:12px;}
+ .opt{display:flex; gap:10px; align-items:flex-start; padding:8px 10px; border:1px solid #e6e8ef; border-radius:12px; margin:8px 0; background:#fafbff;}
+ .opt input{margin-top:4px;}
+ .opt.correct.sel{border-color:#22c55e; background:#f0fff4;}
+ .opt.incorrect.sel{border-color:#ef4444; background:#fff1f2;}
+ .explain{font-size:14px; color:#334155; border-left:3px solid #cbd5e1; padding-left:10px; margin-top:6px;}
+ .controls{display:flex; gap:12px; flex-wrap:wrap; margin-top:8px;}
+ button{padding:10px 14px; border-radius:12px; border:1px solid #cbd5e1; background:#111827; color:white; cursor:pointer;}
+ button.secondary{background:white; color:#111827;}
+ .score{font-weight:700;}
+ .footer{color:#6b7280; font-size:13px; margin-top:24px;}
+ .badge{display:inline-block; font-size:12px; padding:4px 8px; border-radius:999px; background:#eef2ff; color:#3730a3; margin-left:8px;}
+ /* Diff styles */
+ del{color:#6b7280; text-decoration-color:#ef4444; text-decoration-thickness:2px;}
+ .ins{color:#ef4444; font-weight:600;}
+ .insline{color:#ef4444; font-weight:600;}
+ .diffline{margin:4px 0;}
+ .correctline{margin-top:4px; color:#1f2937;}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>確認テスト（後半）<span class="badge">自動採点・修正表示</span></h1>
+    <div class="footer">誤っている箇所に<del>取り消し線</del>、その隣に<span class="ins">赤文字の正しい表現</span>を表示します。</div>
+  </div>
+</header>
+<main class="wrap" id="app"></main>
+<script>
+const DATA = [
+  {
+    "id": 1,
+    "title": "第1問 次の中から誤っている文章をすべて選びなさい。",
+    "instruction": "",
+    "type": "select-incorrect",
+    "options": [
+      {
+        "label": "1",
+        "text": "独立行政法人国立病院機構法（平成１４年法律第１９１号）に基づく、特定独立行政法人として、 平成１６年４月１日に設立され、全国１４０の病院（令和６年４月１日現在）を一つの法人として運営している。\n",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "2",
+        "text": "地域における医療に一層貢献するために、都道府県が策定する医療計画を踏まえ、「がん、精神疾患、脳卒中、急性心筋梗塞、糖尿病」の5疾病および救急医療、災害医療、へき地の医療、周産期医療、小児医療（小児救急を含む）、地域医療の6事業を中心に、地域連携クリティカルパスを始め地域の医療きかんとの連携強化を図っている。\n",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>地域における医療に一層貢献するために、都道府県が策定する医療計画を踏まえ、「がん、精神疾患、脳卒中、急性心筋梗塞、糖尿病」の5疾病および救急医療、災害医療、へき地の医療、周産期医療、小児医療（小児救急を含む）、<del>地域</del><span class='ins'>新興感染症発生・まん延時における</span>医療の6事業を中心に、地域連携クリティカルパスを始め地域の医療きかんとの連携強化を図っている。\n</div><div class='correctline'>正しい文： <span class='insline'>地域における医療に一層貢献するために、都道府県が策定する医療計画を踏まえ、「がん、精神疾患、脳卒中、急性心筋梗塞、糖尿病」の5疾病および救急医療、災害医療、へき地の医療、周産期医療、小児医療（小児救急を含む）、新興感染症発生・まん延時における医療の6事業を中心に、地域連携クリティカルパスを始め地域の医療きかんとの連携強化を図っている。\n</span></div>"
+      },
+      {
+        "label": "3",
+        "text": "重症心身障害、筋ジス・神経難病、精神、結核・呼吸器、エイズなど民間では体制の整備、経験、または不採算とされることからアプローチが困難な分野についても、患者・家族が安心して治療・療養ができるよう、各地域の国立病院機構がセーフティネットとして支えている。\n",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "4",
+        "text": "5法人はそれぞれ悪性新生物、精神・神経疾患、感染症、成育に係る疾患、加齢に係る疾患の調査、研究及び技術の開発、これらの業務に密接に関連する医療の提供、技術者の研修、医療政策の提言等の業務を行っている。\n",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>5法人はそれぞれ悪性新生物、精神・神経疾患、<del>感染症</del><span class='ins'>循環器病</span>、成育に係る疾患、加齢に係る疾患の調査、研究及び技術の開発、これらの業務に密接に関連する医療の提供、技術者の研修、医療政策の提言等の業務を行っている。\n</div><div class='correctline'>正しい文： <span class='insline'>5法人はそれぞれ悪性新生物、精神・神経疾患、循環器病、成育に係る疾患、加齢に係る疾患の調査、研究及び技術の開発、これらの業務に密接に関連する医療の提供、技術者の研修、医療政策の提言等の業務を行っている。\n</span></div>"
+      },
+      {
+        "label": "5",
+        "text": "令和７年４月１日に国立感染症研究所と国立研究開発法人国立国際医療研究センターを統合した国立健康危機管理研究機構が設立され、英語名を「Japan Institute for Health Security」、略称はJIHS（ジース）とされた。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "title": "第2問 次の中から誤っている文章をすべて選びなさい。",
+    "instruction": "",
+    "type": "select-incorrect",
+    "options": [
+      {
+        "label": "1",
+        "text": "「転任」とは、職員をその職員が現に就いている職務と任命権者を同じくする他の職員の職務に就かせることであって、昇任、降任に該当しないものをいう。\n",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>「転任」とは、職員をその職員が現に就いている職務と任命権者を<del>同じく</del><span class='ins'>異に</span>する他の職員の職務に就かせることであって、昇任、降任に該当しないものをいう。\n</div><div class='correctline'>正しい文： <span class='insline'>「転任」とは、職員をその職員が現に就いている職務と任命権者を異にする他の職員の職務に就かせることであって、昇任、降任に該当しないものをいう。\n</span></div>"
+      },
+      {
+        "label": "2",
+        "text": "「配置換」とは、職員をその職員が現に就いている職務と任命権者を異にする他の職員の職務に就かせることであって、昇任、降任に該当しないものをいう。\n",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>「配置換」とは、職員をその職員が現に就いている職務と任命権者を<del>異に</del><span class='ins'>同じく</span>する他の職員の職務に就かせることであって、昇任、降任に該当しないものをいう。\n</div><div class='correctline'>正しい文： <span class='insline'>「配置換」とは、職員をその職員が現に就いている職務と任命権者を同じくする他の職員の職務に就かせることであって、昇任、降任に該当しないものをいう。\n</span></div>"
+      },
+      {
+        "label": "3",
+        "text": "休職は、本人の同意を得てなされるものであり、職員にとって不利益な処分となる場合が多いため、長期の病気休暇の場合や刑事事件に関し起訴された場合など一定の理由の場合だけに限定して、職員の身分保障を期している。\n",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>休職は、本人の<del>同意を得て</del><span class='ins'>意にかかわりなく一方的に</span>なされるものであり、職員にとって不利益な処分となる場合が多いため、長期の病気休暇の場合や刑事事件に関し起訴された場合など一定の理由の場合だけに限定して、職員の身分保障を期している。\n</div><div class='correctline'>正しい文： <span class='insline'>休職は、本人の意にかかわりなく一方的になされるものであり、職員にとって不利益な処分となる場合が多いため、長期の病気休暇の場合や刑事事件に関し起訴された場合など一定の理由の場合だけに限定して、職員の身分保障を期している。\n</span></div>"
+      },
+      {
+        "label": "4",
+        "text": "心身の故障のため長期休養を要する場合、 3 年を超えない範囲で休職することができる。\n",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "5",
+        "text": "「解雇」とは、職員をその意に反して退職させることをいい、解雇される理由として、心身の故障のため、職務の遂行に支障があり、又はこれに堪えない場合や禁錮以上の刑に処せられ、その執行を終わるまで又は執行を受けることがなくなるまでの者等が該当する。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "title": "第3問 次の中から誤っている文章をすべて選びなさい。",
+    "instruction": "",
+    "type": "select-incorrect",
+    "options": [
+      {
+        "label": "1",
+        "text": "独立行政法人国立病院機構ハラスメントの防止等に関する規程は、独立行政法人国立病院機構における人事の公正の確保、職員の利益の保護及び職員の能率を十分発揮できる勤務環境を確保することを目的としている。\n",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "2",
+        "text": "不当な仲間はずれやいじめ、飲酒の強要や酔った上での迷惑行為、不正行為の強要、自分の支持する宗教や思想にしつこく関与を求めることなどもハラスメントに該当する。\n",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "3",
+        "text": "パワー・ハラスメントとは、国立病院機構における職務上の地位や人間関係などの個人的な地位の優位性を背景に、嫌がらせなどの言動を繰り返すことを指し、「業務の適正な範囲を超えて」行われた「不適切で不当な」言動であるかどうかが重要となる。\n",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>パワー・ハラスメントとは、国立病院機構における職務上の地位や人間関係などの<del>個人的な地位</del><span class='ins'>職場内</span>の優位性を背景に、嫌がらせなどの言動を繰り返すことを指し、「業務の適正な範囲を超えて」行われた「不適切で不当な」言動であるかどうかが重要となる。\n</div><div class='correctline'>正しい文： <span class='insline'>パワー・ハラスメントとは、国立病院機構における職務上の地位や人間関係などの職場内の優位性を背景に、嫌がらせなどの言動を繰り返すことを指し、「業務の適正な範囲を超えて」行われた「不適切で不当な」言動であるかどうかが重要となる。\n</span></div>"
+      },
+      {
+        "label": "4",
+        "text": "セクシュアル・ハラスメントとは、行為者が意図して、他の者を不快にさせる性的な言動のことである。\n",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>セクシュアル・ハラスメントとは、<del>行為者が意図して</del><span class='ins'>行為者の行為の意図にに関わらず</span>、他の者を不快にさせる性的な言動のことである。\n</div><div class='correctline'>正しい文： <span class='insline'>セクシュアル・ハラスメントとは、行為者の意図に関わらず、他の者を不快にさせる性的な言動のことである。\n</span></div>"
+      },
+      {
+        "label": "5",
+        "text": "ハラスメントの相談等は、原則として面接によることとし、必要に応じて、電子メール、手紙、電話によるものも受け付けるものとする。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "title": "第4問 業績評価ついて正しい文章をすべて選びなさい。",
+    "instruction": "",
+    "type": "select-incorrect",
+    "options": [
+      {
+        "label": "1",
+        "text": "休職等により勤務した期間が当該評価期間の1／６に相当する期間の日数に満たない場合は、評価の対象外とし標準（６０点）の評価結果とみなす。ただし、医師については、「試用期間」がある場合でも評価対象とする。\n",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>休職等により勤務した期間が当該評価期間の<del>1／６</del><span class='ins'>>５／６</span>に相当する期間の日数に満たない場合は、評価の対象外とし標準（６０点）の評価結果とみなす。ただし、医師については、「試用期間」がある場合でも評価対象とする。\n</div><div class='correctline'>正しい文： <span class='insline'>休職等により勤務した期間が当該評価期間の５／６に相当する期間の日数に満たない場合は、評価の対象外とし標準（６０点）の評価結果とみなす。ただし、医師については、「試用期間」がある場合でも評価対象とする。\n</span></div>"
+      },
+      {
+        "label": "2",
+        "text": "評価者は、とりわけ勤務成績が良好でないと認められる事実が見られる場合は、評価者は評価期間中において繰返しの指導（概ね5回）を行い、被評価者に自覚を促すことが必要である。\n",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>評価者は、とりわけ勤務成績が良好でないと認められる事実が見られる場合は、評価者は評価期間中において繰返しの指導（概ね<del>5</del><span class='ins'>3</span>回）を行い、被評価者に自覚を促すことが必要である。\n</div><div class='correctline'>正しい文： <span class='insline'>評価者は、とりわけ勤務成績が良好でないと認められる事実が見られる場合は、評価者は評価期間中において繰返しの指導（概ね3回）を行い、被評価者に自覚を促すことが必要である。\n</span></div>"
+      },
+      {
+        "label": "3",
+        "text": "業績評価において、基本年俸表適用職員以外の役職手当を支給されている被評価者のことを役職職員という。\n",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "4",
+        "text": "評価者会議は、業績評価の責任者である理事長（評価責任者）が定期的に開催し、院内の全評価者を構成員とする。\n",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>評価者会議は、業績評価の責任者である<del>理事長</del><span class='ins'>院長</span>（評価責任者）が定期的に開催し、院内の全評価者を構成員とする。\n</div><div class='correctline'>正しい文： <span class='insline'>評価者会議は、業績評価の責任者である院長（評価責任者）が定期的に開催し、院内の全評価者を構成員とする。\n</span></div>"
+      },
+      {
+        "label": "5",
+        "text": "被評価者は、評価制度等についての疑問がある場合には、評価者若しくは苦情担当窓口等へ申し出ることができる。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "title": "第5問 労働条件の明示ついて定めをした場合に明示しなければならない事項として誤っている文章をすべて選びなさい。",
+    "instruction": "",
+    "type": "select-incorrect",
+    "options": [
+      {
+        "label": "1",
+        "text": " 労働者に負担させる食費、作業用品などに関する事項\n",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "2",
+        "text": "臨時に支払われる賃金、賞与等及び最低賃金額に関する事項\n",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "3",
+        "text": "退職に関する事項（解雇の事由を含む。）\n",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "4",
+        "text": "期間の定めのある労働契約を更新する場合の基準 \n",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "5",
+        "text": "災害補償、業務外の傷病扶助に関する事項",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "title": "第6問 次の中から誤っている文章をすべて選びなさい。",
+    "instruction": "",
+    "type": "select-incorrect",
+    "options": [
+      {
+        "label": "1",
+        "text": "総括安全衛生管理者、安全管理者、衛生管理者及び産業医の選任は、その選任すべき事由が発生した日から１０ 日以内に選任し、遅滞なく所轄の労働基準監督署へ報告する必要がある。\n",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>総括安全衛生管理者、安全管理者、衛生管理者及び産業医の選任は、その選任すべき事由が発生した日から<del>１０ </del><span class='ins'>１４</span>日以内に選任し、遅滞なく所轄の労働基準監督署へ報告する必要がある。\n</div><div class='correctline'>正しい文： <span class='insline'>総括安全衛生管理者、安全管理者、衛生管理者及び産業医の選任は、その選任すべき事由が発生した日から１４日以内に選任し、遅滞なく所轄の労働基準監督署へ報告する必要がある。\n</span></div>"
+      },
+      {
+        "label": "2",
+        "text": "安衛法では、労働災害を防止するための管理を必要とする一定の作業について、各事業場の作業内容、規模等に応じて、安全衛生推進者の選任を義務づけている。\n",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>安衛法では、労働災害を防止するための管理を必要とする一定の作業について、各事業場の作業内容、規模等に応じて、<del>安全衛生推進</del><span class='ins'>作業主任</span>者の選任を義務づけている。\n</div><div class='correctline'>正しい文： <span class='insline'>安衛法では、労働災害を防止するための管理を必要とする一定の作業について、各事業場の作業内容、規模等に応じて、作業主任者の選任を義務づけている。\n</span></div>"
+      },
+      {
+        "label": "3",
+        "text": "安衛法では、事業場を一つの適用単位として、各事業場の業種、規模等に応じて、安全委員会、衛生委員会の設置を義務づけている。\n",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "4",
+        "text": "総括安全衛生管理者とは、安全管理者、衛生管理者を指揮させるとともに、労働者の危険または健康障害を防止するための措置等の 業務を統括管理させることとされており、常時１,０００人以上の労働者を使用するすべての事業場で選任することとされている。\n",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "5",
+        "text": "安全管理者、衛生管理者の選任を要しない労働者数１０人から４９人の事業場には、安全衛生推進者などの選任を義務づけている。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "title": "第7問 次の中から誤っている文章をすべて選びなさい。",
+    "instruction": "",
+    "type": "select-incorrect",
+    "options": [
+      {
+        "label": "1",
+        "text": "SWOT分析は病院が置かれている内部環境分析、外部環境分析の視点から、「強み」、「弱み」、「機会」、「脅威」に分類し、分析を行う手法である。\n",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "2",
+        "text": "内部環境分析による「機会」「脅威」とは、自院の経営戦略、マーケット環境、コスト、人的資源等を分析し、競合病院と比較して自院の強みと弱みを明らかにすることである。\n",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>内部環境分析による「<del>機会</del><span class='ins'>強み</span>」「<del>脅威</del><span class='ins'>弱み</span>」とは、自院の経営戦略、マーケット環境、コスト、人的資源等を分析し、競合病院と比較して自院の強みと弱みを明らかにすることである。\n</div><div class='correctline'>正しい文： <span class='insline'>内部環境分析による「強み」「弱み」とは、自院の経営戦略、マーケット環境、コスト、人的資源等を分析し、競合病院と比較して自院の強みと弱みを明らかにすることである。\n</span></div>"
+      },
+      {
+        "label": "3",
+        "text": "外部環境による「強み」と「弱み」とは、医療環境の変化や患者動向等であり、自院だけではなく、競合病院にも影響を及ぼすものである。\n",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>外部環境による「<del>強み</del><span class='ins'>機会</span>」と「<del>弱み</del><span class='ins'>脅威</span>」とは、医療環境の変化や患者動向等であり、自院だけではなく、競合病院にも影響を及ぼすものである。\n</div><div class='correctline'>正しい文： <span class='insline'>外部環境による「機会」と「脅威」とは、医療環境の変化や患者動向等であり、自院だけではなく、競合病院にも影響を及ぼすものである。\n</span></div>"
+      },
+      {
+        "label": "4",
+        "text": "経営診断指標は「収益性」「効率性」「生産性」「成長性」4つの視点からなり、他病院と比較することで自院の強みや弱みを確認できる。\n",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>経営診断指標は「収益性」「効率性」「生産性」「<span class='ins'>健全性」「</span>成長性」<del>4</del><span class='ins'>5</span>つの視点からなり、他病院と比較することで自院の強みや弱みを確認できる。\n</div><div class='correctline'>正しい文： <span class='insline'>経営診断指標は「収益性」「効率性」「生産性」「健全性」「成長性」5つの視点からなり、他病院と比較することで自院の強みや弱みを確認できる。\n</span></div>"
+      },
+      {
+        "label": "5",
+        "text": "SWOT分析によって明らかになった「強み」と「弱み」、「機会」と「脅威」の組み合わせの中から、経営課題を洗い出し対策の検討を行うことをクロスSWOT分析という。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "title": "第8問 次の中から誤っている文章をすべて選びなさい。",
+    "instruction": "",
+    "type": "select-incorrect",
+    "options": [
+      {
+        "label": "1",
+        "text": "医業収支率は（医業収益÷医業費用）×１００で算出され、この比率が高いほど経営効率に優れ、経営状態が良いことを示している。\n",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "2",
+        "text": "入院患者1人当たり医療費用は医業費用÷1日平均在院患者数で算出され、この指標が小さいほど費用を抑制して病院運営をしていることを表している。\n",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>入院患者1人当たり医療費用は医業費用÷<del>1日平均</del><span class='ins'>延</span>在院患者数で算出され、この指標が小さいほど費用を抑制して病院運営をしていることを表している。\n</div><div class='correctline'>正しい文： <span class='insline'>入院患者1人当たり医療費用は医業費用÷延在院患者数で算出され、この指標が小さいほど費用を抑制して病院運営をしていることを表している。\n</span></div>"
+      },
+      {
+        "label": "3",
+        "text": "職員1人当たり医業収益は（医業収益÷年間平均職員数）で算出され、労働効率の良否を測る尺度として用いられる。\n",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "4",
+        "text": "新入院患者率は（年間延新入院患者数÷年間延入院患者数）×100で算出される。\n",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "5",
+        "text": "債務比率は（（借入金＋リース責務）÷（医業収益÷暦日数））×100で算出され、この比率が100％を越している場合は、債務超過に陥っていることを示している。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>債務比率は（（借入金＋リース責務）÷<del>（医業収益÷暦日数）</del><span class='ins'>（総資産）</span>）×100で算出され、この比率が100％を越している場合は、債務超過に陥っていることを示している。</div><div class='correctline'>正しい文： <span class='insline'>債務比率は（（借入金＋リース責務÷総資産）×100で算出され、この比率が100％を越している場合は、債務超過に陥っていることを示している。</span></div>"
+      }
+    ]
+  },
+  {
+    "id": 9,
+    "title": "第9問 次の中から誤っている文章をすべて選びなさい。",
+    "instruction": "",
+    "type": "select-incorrect",
+    "options": [
+      {
+        "label": "1",
+        "text": "内部統制の推進体制として、各法人では、内部統制を担当する役員、内部統制推進責任者及び内部統制推進部門を設置することとしており、国立病院機構においては、本部、グループ担当理事部門及び各病院に内部統制推進責任者を設置し、 内部統制システムを整備している。\n",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "2",
+        "text": "リスク管理を活用した内部統制の取組みでは、リスクの顕在化防止または顕在化後の損失最小化を図ることを推進している。\n",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "3",
+        "text": "業務監査指導には業務の実施状況や経営管理、医療管理、防災及び安全に関する事項が対象となる。\n",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "4",
+        "text": "特別調査指導では、内部統制委員会が定めた事項に基づき監査を実施する。\n",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>特別調査指導では、<del>内部統制委員会が定めた</del><span class='ins'>理事長が特に命ずる特に命ずる</span>事項に基づき監査を実施する。\n</div><div class='correctline'>正しい文： <span class='insline'>特別調査指導では、理事長が特に命ずる事項に基づき監査を実施する。\n</span></div>"
+      },
+      {
+        "label": "5",
+        "text": "コンプライアンスの推進に当たって、日々の業務活動から職員一人ひとりが着実に取組を実践していくため、職員一人ひとりの活動を基本とし、各職場単位で自主点検を通じ、職場内の法令遵守の実施状況の把握等を行う体制を構築する必要がある。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>コンプライアンスの推進に当たって、日々の業務活動から職員一人ひとりが着実に取組を実践していくため、<del>職員一人ひとり</del><span class='ins'>職場単位</span>の活動を基本とし、各職場単位で自主点検を通じ、職場内の法令遵守の実施状況の把握等を行う体制を構築する必要がある。</div><div class='correctline'>正しい文： <span class='insline'>コンプライアンスの推進に当たって、日々の業務活動から職員一人ひとりが着実に取組を実践していくため、職場単位の活動を基本とし、各職場単位で自主点検を通じ、職場内の法令遵守の実施状況の把握等を行う体制を構築する必要がある。</span></div>"
+      }
+    ]
+  },
+  {
+    "id": 10,
+    "title": "第10問 次の中から正しい文章をすべて選びなさい。",
+    "instruction": "",
+    "type": "select-incorrect",
+    "options": [
+      {
+        "label": "1",
+        "text": "病院とは、 20 人以上の患者を入院させるための施設を有し、傷病者が、科学的でかつ正な診療を受けることができる便宜を与えることを主たる目的として組織され、かつ、運営される施設である。\n",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "2",
+        "text": "診療所とは、患者を入院させるための施設を有しないものかつ１９人以下の患者を入院させるための施設である。\n",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>診療所とは、患者を入院させるための施設を有しないもの<del>かつ</del><span class='ins'>又は</span>１９人以下の患者を入院させるための施設である。\n</div><div class='correctline'>正しい文： <span class='insline'>診療所とは、患者を入院させるための施設を有しないもの又は１９人以下の患者を入院させるための施設である。\n</span></div>"
+      },
+      {
+        "label": "3",
+        "text": "介護老人保健施設とは、介護保険法の規定による介護老人保健施設であり、要介護者に対し、施設サービス計画に基づいて、看護、医学的管理の下における介護及び機能訓練その他必要な医療を行うとともに、その日常生活上の世話を行うことを目的とする施設である。\n",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "4",
+        "text": "助産所は、妊婦、産婦又はじょく婦１９ 人以上の入所施設を有してはならない。\n",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>助産所は、妊婦、産婦又はじょく婦<del>１９</del><span class='ins'>１０</span> 人以上の入所施設を有してはならない。\n</div><div class='correctline'>正しい文： <span class='insline'>助産所は、妊婦、産婦又はじょく婦１０ 人以上の入所施設を有してはならない。\n</span></div>"
+      },
+      {
+        "label": "5",
+        "text": "病院、診療所、助産所は医師又は歯科医師が、公衆又は特定多数人のため医業又は歯科医業を行う場所である。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>病院、診療所<del>、助産所</del>所は医師又は歯科医師が、公衆又は特定多数人のため医業又は歯科医業を行う場所である。<span class='ins'>助産所は助産師が公衆又は特定多数人のためその業務（病院又は診療所において行うものを除く。）を行う場所。</span></div><div class='correctline'>正しい文： <span class='insline'>病院、診療所は医師又は歯科医師が、公衆又は特定多数人のため医業又は歯科医業を行う場所である。助産所は助産師が公衆又は特定多数人のためその業務（病院又は診療所において行うものを除く。）を行う場所。</span></div>"
+      }
+    ]
+  },
+  {
+    "id": 11,
+    "title": "第11問 次の中から誤っている文章をすべて選びなさい。",
+    "instruction": "",
+    "type": "select-incorrect",
+    "options": [
+      {
+        "label": "1",
+        "text": "医療計画は基本方針に即して、かつ、地域の実情に応じて、当該医療機関における医療提供体制の確保を図るための計画を定めるものとされている。\n",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>医療計画は基本方針に即して、かつ、地域の実情に応じて、当該<del>医療機関</del><span class='ins'>都道府県</span>における医療提供体制の確保を図るための計画を定めるものとされている。\n</div><div class='correctline'>正しい文： <span class='insline'>医療計画は基本方針に即して、かつ、地域の実情に応じて、当該都道府県における医療提供体制の確保を図るための計画を定めるものとされている。\n</span></div>"
+      },
+      {
+        "label": "2",
+        "text": "都道府県は、5 年ごとに医療計画ついて調査、分析及び評価を行い、必要があると認めるときは医療計画を変更する。\n",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>都道府県は、<del>5</del><span class='ins'>6</span> 年ごとに医療計画ついて調査、分析及び評価を行い、必要があると認めるときは医療計画を変更する。\n</div><div class='correctline'>正しい文： <span class='insline'>都道府県は、6 年ごとに医療計画ついて調査、分析及び評価を行い、必要があると認めるときは医療計画を変更する。\n</span></div>"
+      },
+      {
+        "label": "3",
+        "text": "開設承認事項を変更しようとするときはあらかじめ都道府県知事へ許可申請が必要なものと変更後１4 日以内に都道府県知事へ届出が必要なものがある。\n",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>開設承認事項を変更しようとするときはあらかじめ都道府県知事へ許可申請が必要なものと変更後<del>１4</del><span class='ins'>10</span> 日以内に都道府県知事へ届出が必要なものがある。\n</div><div class='correctline'>正しい文： <span class='insline'>開設承認事項を変更しようとするときはあらかじめ都道府県知事へ許可申請が必要なものと変更後10 日以内に都道府県知事へ届出が必要なものがある。\n</span></div>"
+      },
+      {
+        "label": "4",
+        "text": "病院を開設しようとするときは、都道府県知事の許可を受けなければならない。\n",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "5",
+        "text": "医療法人制度は、個人経営でも容易に法人格を取得させ、医業の永続性を確保するとともに、医療の安定的な普及・向上を図るために設けられている。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      }
+    ]
+  },
+  {
+    "id": 12,
+    "title": "第12問 病院の開設承認事項を変更しようとするときにあらかじめ都道府県知事へ許可申請が必要な項目で誤っている組み合わせを選びなさい。",
+    "instruction": "",
+    "type": "select-incorrect",
+    "options": [
+      {
+        "label": "1",
+        "text": "開設者の住所及び氏名\n",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "2",
+        "text": "敷地周囲の見取り図",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "3",
+        "text": "敷地の面積及び平面図",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "4",
+        "text": "調剤室の設備の有無及び構造設備の概要",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "5",
+        "text": "療養病院を有する病院について、浴室の構造設備の概要",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      }
+    ]
+  },
+  {
+    "id": 13,
+    "title": "第13問 次の中から誤っている文章をすべて選びなさい。",
+    "instruction": "",
+    "type": "select-incorrect",
+    "options": [
+      {
+        "label": "1",
+        "text": "医師の法定人員は、入院患者と外来患者を用いて算出される。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "2",
+        "text": "薬剤師の法定人員は、入院患者と外来患者を用いて算出される。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>薬剤師の法定人員は、入院患者と外来患者<span class='ins'>に係る取扱処方せん数</span>を用いて算出される。</div><div class='correctline'>正しい文： <span class='insline'>薬剤師の法定人員は、入院患者と外来患者に係る取扱処方せん数を用いて算出される。</span></div>"
+      },
+      {
+        "label": "3",
+        "text": "病院の管理者は、その管理する病院に係る患者の状況その他の事項に関する報告書を病院所在地を管轄とする都道府県知事に提出することになっている。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>病院の管理者は、その管理する病院に係る患者の状況その他の事項に関する報告書を病院所在地を管轄とする<del>都道府県知事</del><span class='ins'>保健所長</span>に提出することになっている。</div><div class='correctline'>正しい文： <span class='insline'>病院の管理者は、その管理する病院に係る患者の状況その他の事項に関する報告書を病院所在地を管轄とする保健所長に提出することになっている。</span></div>"
+      },
+      {
+        "label": "4",
+        "text": "栄養士の法定人員は、病床数100床以上の病院に1名配置することが義務付けられている。\n",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "5",
+        "text": "管理者は、管理者の氏名、診療に従事する医師または歯科医師の氏名、診療日及び診療時間、建物の内部に関する案内を病院の入口、受付または待合所の付近の見やすい場所に掲示しなければならない。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      }
+    ]
+  },
+  {
+    "id": 14,
+    "title": "第14問 医療保険制度について誤っている文章をすべて選びなさい。",
+    "instruction": "",
+    "type": "select-incorrect",
+    "options": [
+      {
+        "label": "1",
+        "text": "被用者保険は、全国健康保険協会管掌健康保険、組合管掌健康保険、船員保険、国家公務員等共済組合、地方公務員等共済組合、私立学校教職員共済組合等で構成されている。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "2",
+        "text": "国民健康保険法は、自営業者、農業専業者等の被用者保険に加入していない者を主たる対象として成立した地域保険としての国民健康保険組合と同種の事業、業務に従事する者で組織された国民健康保険に分かれる。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>国民健康保険法は、自営業者、農業専業者等の被用者保険に加入していない者を主たる対象として成立した地域保険としての国民健康保険<del>組合</del>と同種の事業、業務に従事する者で組織された国民健康保険<span class='ins'>組合</span>に分かれる。</div><div class='correctline'>正しい文： <span class='insline'>国民健康保険法は、自営業者、農業専業者等の被用者保険に加入していない者を主たる対象として成立した地域保険としての国民健康保険と同種の事業、業務に従事する者で組織された国民健康保険組合に分かれる。</span></div>"
+      },
+      {
+        "label": "3",
+        "text": "後期高齢者医療制度による医療の対象者は、７５歳以上の者及び６０歳以上７５歳未満で後期高齢者医療広域連合（以下「広域連合」）により一定の障害状態にあると認定された者である。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>後期高齢者医療制度による医療の対象者は、７５歳以上の者及び<del>６０</del><span class='ins'>６５</span>歳以上７５歳未満で後期高齢者医療広域連合（以下「広域連合」）により一定の障害状態にあると認定された者である。</div><div class='correctline'>正しい文： <span class='insline'>後期高齢者医療制度による医療の対象者は、７５歳以上の者及び６5歳以上７５歳未満で後期高齢者医療広域連合（以下「広域連合」）により一定の障害状態にあると認定された者である。</span></div>"
+      },
+      {
+        "label": "4",
+        "text": "後期高齢者医療制度は、医療給付費の５割を公費で、４割を６４歳以下の現役世代の加入する医療保険で負担し、残りの１割を高齢者の保険料で負担する。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "5",
+        "text": "公費負担医療制度には、法律によって行われるものと、予算的措置によって行われるものとがある。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      }
+    ]
+  },
+  {
+    "id": 15,
+    "title": "第15問 次の中から誤っている文章をすべて選びなさい。",
+    "instruction": "",
+    "type": "select-incorrect",
+    "options": [
+      {
+        "label": "1",
+        "text": "「母子保健法」に基づき、市町村は、養育のため病院又は診療所に入院することを必要とする未熟児に対し、その養育に必要な医療の給付を行い、又は養育に必要な医療の給付が困難である場合に限り、これに代えて養育医療に要する費用を支給することができる。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "2",
+        "text": "「心神喪失等の状態で重大な他害行為を行った者の医療及び観察等に関する法律」は、心神喪失や心神耗弱で重大な他害行為を行い不起訴・無罪となった精神障害者に対し、適切な処遇を定める手続きを通じて病状の改善と再発防止を図り、社会復帰を促進することを目的としている。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "3",
+        "text": "「心神喪失等の状態で重大な他害行為を行った者の医療及び観察等に関する法律」に基づく指定医療機関は、国、都道府県、特定独立行政法人等が開設する病院で、厚生労働省令で定める基準に適合する病院の全部又は一部について、その開設者の同意を得て都道府県が指定する。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>「心神喪失等の状態で重大な他害行為を行った者の医療及び観察等に関する法律」に基づく指定医療機関は、国、都道府県、特定独立行政法人等が開設する病院で、厚生労働省令で定める基準に適合する病院の全部又は一部について、その開設者の同意を得て<del>都道府県</del><span class='ins'>厚生労働大臣</span>が指定する。</div><div class='correctline'>正しい文： <span class='insline'>「心神喪失等の状態で重大な他害行為を行った者の医療及び観察等に関する法律」に基づく指定医療機関は、国、都道府県、特定独立行政法人等が開設する病院で、厚生労働省令で定める基準に適合する病院の全部又は一部について、その開設者の同意を得て厚生労働大臣が指定する。</span></div>"
+      },
+      {
+        "label": "4",
+        "text": "指定入院医療機関は全国で３５カ所（８５６床）整備されている。（令和7年４月１日現在）なお、国立病院機構として１４カ所（４１５床）、国立高度専門医療研究センターで１カ所（６６床）が指定されている。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "5",
+        "text": "指定入院医療機関の設置及び運営に要する費用は都道府県が負担する。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>指定入院医療機関の設置及び運営に要する費用は<del>都道府県</del><span class='ins'>国</span>が負担する。</div><div class='correctline'>正しい文： <span class='insline'>指定入院医療機関の設置及び運営に要する費用は国が負担する。</span></div>"
+      }
+    ]
+  },
+  {
+    "id": 16,
+    "title": "第16問 次の中から誤っている文章をすべて選びなさい。",
+    "instruction": "",
+    "type": "select-incorrect",
+    "options": [
+      {
+        "label": "1",
+        "text": "「労働者災害補償保険法」は、業務上の事由又は通勤による労働者の負傷、疾病、障害、死亡に対し、必要な保険給付を行う。なお、国家公務員の公務上の災害に対する補償については、これとは別に国家公務員災害補償法がある。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "2",
+        "text": "「原子爆弾被爆者に対する援護に関する法律」は、広島市および長崎市で原爆被爆を受け、都道府県知事から被爆者健康手帳の交付を受けた者に対し、公費負担で健康診断や指定医療機関による必要な医療の給付を行うことを定めている。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "3",
+        "text": "「戦傷病者特別援護法」は、軍人・軍属であった者が公務に起因する傷病により、厚生労働大臣から 戦傷病者手帳の交付を受け、さらに都道府県知事から療養券の交付を受けて指定医療機関に提出した場合、療養の給付または更生医療の給付を受けることができる。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "4",
+        "text": "「介護保険制度」は、加齢による心身の変化に起因して要介護状態になった要介護者が、尊厳を保って日常生活を営むための、保健・医療・福祉サービスを給付するための、国民の共同連帯の理念に基づき、要介護者を社会全体で支える新たな仕組みとして平成１７年４月より導入された。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>「介護保険制度」は、加齢による心身の変化に起因して要介護状態になった要介護者が、尊厳を保って日常生活を営むための、保健・医療・福祉サービスを給付するための、国民の共同連帯の理念に基づき、要介護者を社会全体で支える新たな仕組みとして平成<del>１７</del><span class='ins'>１２</span>年４月より導入された。</div><div class='correctline'>正しい文： <span class='insline'>「介護保険制度」は、加齢による心身の変化に起因して要介護状態になった要介護者が、尊厳を保って日常生活を営むための、保健・医療・福祉サービスを給付するための、国民の共同連帯の理念に基づき、要介護者を社会全体で支える新たな仕組みとして平成１2年４月より導入された。</span></div>"
+      },
+      {
+        "label": "5",
+        "text": "「公害健康被害の補償等に関する法律」は、大気汚染、または水質の汚濁の影響による健康被害に対する補償として療養の給付、障害補償費などの給付を行うものであり、厚生労働大臣から公害医療手帳を交付された公害認定患者に対してのみ実施される。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>「公害健康被害の補償等に関する法律」は、大気汚染、または水質の汚濁の影響による健康被害に対する補償として療養の給付、障害補償費などの給付を行うものであり、<del>厚生労働大臣</del><span class='ins'>都道府県知事（または政令市長）</span>から公害医療手帳を交付された公害認定患者に対してのみ実施される。</div><div class='correctline'>正しい文： <span class='insline'>「公害健康被害の補償等に関する法律」は、大気汚染、または水質の汚濁の影響による健康被害に対する補償として療養の給付、障害補償費などの給付を行うものであり、都道府県知事（または政令市長）から公害医療手帳を交付された公害認定患者に対してのみ実施される。</span></div>"
+      }
+    ]
+  },
+  {
+    "id": 17,
+    "title": "第17問 次の中から誤っている文章をすべて選びなさい。",
+    "instruction": "",
+    "type": "select-incorrect",
+    "options": [
+      {
+        "label": "1",
+        "text": "保険診療を行うためには、病院・診療所が保険医療を行う機関として地方厚生局長から指定を受け、さらに医師が保険医として登録されていなければならない。これを二重指定制という。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>保険診療を行うためには、病院・診療所が保険医療を行う機関として<del>地方厚生局長</del><span class='ins'>厚生労働大臣</span>から指定を受け、さらに医師が保険医として登録されていなければならない。これを二重指定制という。</div><div class='correctline'>正しい文： <span class='insline'>保険診療を行うためには、病院・診療所が保険医療を行う機関として厚生労働大臣から指定を受け、さらに医師が保険医として登録されていなければならない。これを二重指定制という。</span></div>"
+      },
+      {
+        "label": "2",
+        "text": "二重指定制は、診療報酬の請求等の事務的、経済的な面の責任を病院等が分担し、診療上の主体性、責任を医師個人がもつことによって、保険医療の責任の分担を明らかにし、保険医療の円滑な運営を図ろうとするものである。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "3",
+        "text": "健康保険法で指定された病院等を「保険医療機関」といい、登録された医師を「保険医」という。保険医療機関、保険医の指定を受けると、特に手続をしなくても、その他の医療保険の保険診療ができることとなっている。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "4",
+        "text": "保険医療機関としての指定は、開設者から厚生労働大臣への申請により行われる。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>保険医療機関としての指定は、開設者から<del>厚生労働大臣</del><span class='ins'>地方厚生局長等</span>への申請により行われる。</div><div class='correctline'>正しい文： <span class='insline'>保険医療機関としての指定は、開設者から地方厚生局長等への申請により行われる。</span></div>"
+      },
+      {
+        "label": "5",
+        "text": "保険医療機関としての指定は、指定の日から６年を経過したときはその効力を失うこととされているため、引き続き指定を受けるためには、失効前に改めて申請しなければならない。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      }
+    ]
+  },
+  {
+    "id": 18,
+    "title": "第18問 保険医の治療方針等について誤っている文章をすべて選びなさい。",
+    "instruction": "",
+    "type": "select-incorrect",
+    "options": [
+      {
+        "label": "1",
+        "text": "診療は、診療の必要があると認められる疾病または負傷に対して、適確な診断をもととし、妥当適切に行わなければならない。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "2",
+        "text": "特殊な療法または新しい療法等については、厚生労働大臣の定めるもののほか行ってはならない。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "3",
+        "text": "治験対象の薬物を使用する場合、厚生労働大臣の定める「薬価基準」に収載されている医薬品以外の薬物を患者に使用してはならない。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>治験対象の薬物を使用する場合、<del>厚生労働大臣の定める「薬価基準」に収載されている医薬品以外の薬物を患者に使用してはならない。</del><span class='ins'>その他厚生労働大臣が定める場合においてはこの限りでない。</span></del></div><div class='correctline'>正しい文： <span class='insline'>治験対象の薬物を使用する場合、その他厚生労働大臣が定める場合においてはこの限りでない。</span></div>"
+      },
+      {
+        "label": "4",
+        "text": "投薬量は、予見することができる必要期間に従ったものでなければならないこととし、厚生労働大臣が定める内服薬及び外用薬については当該厚生労働大臣が定める内服薬及び外用薬ごとに１回１４日分、３０日分又は６０日分を限度とする。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>投薬量は、予見することができる必要期間に従ったものでなければならないこととし、厚生労働大臣が定める内服薬及び外用薬については当該厚生労働大臣が定める内服薬及び外用薬ごとに１回１４日分、３０日分又は<del>６０</del><span class='ins'>９０</span>日分を限度とする。</div><div class='correctline'>正しい文： <span class='insline'>投薬量は、予見することができる必要期間に従ったものでなければならないこととし、厚生労働大臣が定める内服薬及び外用薬については当該厚生労働大臣が定める内服薬及び外用薬ごとに１回１４日分、３０日分又は９０日分を限度とする。</span></div>"
+      },
+      {
+        "label": "5",
+        "text": "療養担当規則には、保険医療機関が保険診療を行うにあたっての療養担当を定めたものと、保険医が保険診療を行う際の治療方針等を定めたものに大別できる。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      }
+    ]
+  },
+  {
+    "id": 19,
+    "title": "第19問 診療報酬の請求について誤っている文章をすべて選びなさい。",
+    "instruction": "",
+    "type": "select-incorrect",
+    "options": [
+      {
+        "label": "1",
+        "text": "診療報酬とは、保険医が、保険医療機関において保険診療を行った場合に、その診療行為に対       して支払われる対価のことである。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "2",
+        "text": "診療報酬は、「健康保険法の規定による療養に要する費用の額の算定方法」により診療行為ごとに点数が定められており、厳正な解釈のもとに運用されている。点数表に定めのない診療行為については、厚生労働省保険局に協議しなければならず、勝手な解釈によることは許されない。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "3",
+        "text": "支払基金は、各都道府県に支部を置き、また、国保連合会は各都道府県に独立した機関として設置されている。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "4",
+        "text": "保険医療機関は他府県の被保険者の診療報酬もその被保険者の所在地の支払基金等に請求する。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>保険医療機関は他府県の被保険者の診療報酬も<del>その被保険者の所在地</del><span class='ins'>その保険医療機関の所在地</span>の支払基金等に請求する。</div><div class='correctline'>正しい文： <span class='insline'>保険医療機関は他府県の被保険者の診療報酬もその保険医療機関の所在地の支払基金等に請求する。</span></div>"
+      },
+      {
+        "label": "5",
+        "text": "国保連合会には、健康保険等の職域保険、健康保険等と公費の併用、公費単独負担の医療費等の診療報酬を請求し、支払基金には、国民健康保険、国民健康保険と公費の併用、後期高齢者医療制度の診療報酬を請求する。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'><del>国保連合会</del><span class='ins'>支払基金</span>には、健康保険等の職域保険、健康保険等と公費の併用、公費単独負担の医療費等の診療報酬を請求し、<del>支払基金</del><span class='ins'>国保連合会</span>には、国民健康保険、国民健康保険と公費の併用、後期高齢者医療制度の診療報酬を請求する。</div><div class='correctline'>正しい文： <span class='insline'>支払基金には、健康保険等の職域保険、健康保険等と公費の併用、公費単独負担の医療費等の診療報酬を請求し、国保連合会には、国民健康保険、国民健康保険と公費の併用、後期高齢者医療制度の診療報酬を請求する。</span></div>"
+      }
+    ]
+  },
+  {
+    "id": 20,
+    "title": "第20問 診療報酬の請求について誤っている文章をすべて選びなさい。",
+    "instruction": "",
+    "type": "select-incorrect",
+    "options": [
+      {
+        "label": "1",
+        "text": "医師になろうとする者は、医師国家試験に合格し、厚生労働大臣の免許を受けなければならない。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "2",
+        "text": "相対的欠格事由として、未成年者、麻薬、大麻又はあへんの中毒者、医事に関し犯罪又は不正の行為のあった者等が挙げられ、これに該当するとき、戒告、免許の取り消し、三年以内の医業の停止が命ぜられることがある。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>相対的欠格事由として<del>、未成年者</del>、麻薬、大麻又はあへんの中毒者、医事に関し犯罪又は不正の行為のあった者等が挙げられ、これに該当するとき、戒告、免許の取り消し、三年以内の医業の停止が命ぜられることがある。<span class='ins'> 未成年者は絶対的欠落事由に該当する。</span></div><div class='correctline'>正しい文： <span class='insline'>相対的欠格事由として、麻薬、大麻又はあへんの中毒者、医事に関し犯罪又は不正の行為のあった者等が挙げられ、これに該当するとき、戒告、免許の取り消し、三年以内の医業の停止が命ぜられることがある。 未成年者は絶対的欠落事由に該当する。</span></div>"
+      },
+      {
+        "label": "3",
+        "text": "診療に従事しようとする医師は、二年以上、厚生労働大臣の指定する病院又は外国の病院で都道府県知事の指定するものにおいて、臨床研修を受けなければならない。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>診療に従事しようとする医師は、二年以上、<del>厚生労働大臣</del><span class='ins'>都道府県知事</span>の指定する病院又は外国の病院で<del>都道府県知事</del><span class='ins'>厚生労働大臣</span>の指定するものにおいて、臨床研修を受けなければならない。</div><div class='correctline'>正しい文： <span class='insline'>診療に従事しようとする医師は、二年以上、都道府県知事の指定する病院又は外国の病院で厚生労働大臣の指定するものにおいて、臨床研修を受けなければならない。</span></div>"
+      },
+      {
+        "label": "4",
+        "text": "医師は、死体または妊娠４月以上の死産児を検案して異状があると認めたときは、48時間以内に所轄警察署に届け出なければならない。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>医師は、死体または妊娠４月以上の死産児を検案して異状があると認めたときは、<del>48</del><span class='ins'>２４</span>時間以内に所轄警察署に届け出なければならない。</div><div class='correctline'>正しい文： <span class='insline'>医師は、死体または妊娠４月以上の死産児を検案して異状があると認めたときは、２４時間以内に所轄警察署に届け出なければならない。</span></div>"
+      },
+      {
+        "label": "5",
+        "text": "医師は、診療をしたときは、遅滞なく診療に関する事項を診療録に記載しなければならず、病院の管理者は、診療録を５年間保存しなければならない。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      }
+    ]
+  },
+  {
+    "id": 21,
+    "title": "第21問 次の中から誤っている文章をすべて選びなさい。",
+    "instruction": "",
+    "type": "select-incorrect",
+    "options": [
+      {
+        "label": "1",
+        "text": "歯科医師は、厚生労働大臣の免許を持ち、歯科医師の名称を用いて、歯科医業を独占的に行う者であるが、歯科医業の一部と医業の一部は重なり合っていると考えられるので、医師が医業として行うことができる領域がある。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "2",
+        "text": "管理栄養士は、都道府県知事の免許を受けて、管理栄養士の名称を用いて栄養の指導に従事することを業務内容とする。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'><del>管理栄養士</del><span class='ins'>栄養士</span>は、都道府県知事の免許を受けて、管理栄養士の名称を用いて栄養の指導に従事することを業務内容とする。</div><div class='correctline'>正しい文： <span class='insline'>栄養士は、都道府県知事の免許を受けて、管理栄養士の名称を用いて栄養の指導に従事することを業務内容とする。</span></div>"
+      },
+      {
+        "label": "3",
+        "text": "栄養士は、厚生労働大臣の免許を持ち、専門的な知識と技術を生かして、傷病者への栄養指導や健康増進のための栄養指導、給食管理及びこれらの施設に対する栄養改善上必要な指導等を行うことを業務内容とする。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'><del>栄養士</del><span class='ins'>管理栄養士</span>は、厚生労働大臣の免許を持ち、専門的な知識と技術を生かして、傷病者への栄養指導や健康増進のための栄養指導、給食管理及びこれらの施設に対する栄養改善上必要な指導等を行うことを業務内容とする。</div><div class='correctline'>正しい文： <span class='insline'>管理栄養士は、厚生労働大臣の免許を持ち、専門的な知識と技術を生かして、傷病者への栄養指導や健康増進のための栄養指導、給食管理及びこれらの施設に対する栄養改善上必要な指導等を行うことを業務内容とする。</span></div>"
+      },
+      {
+        "label": "4",
+        "text": "言語聴覚士は、厚生労働大臣の免許を持ち、医師の指示の下に、音声機能、言語機能、摂食・嚥下機能、又は聴覚に障害のある者に対し、その機能の維持向上を図ることと言語訓練その他の訓練、これに必要な検査及び助言、指導その他の援助を行うことを業務内容とする。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "5",
+        "text": "視能訓練士は、厚生労働大臣の免許を持ち、医師の指示の下に、弱視、斜視など両眼視機能に障害のある者にその両眼視機能の回復のための矯正訓練及びこれに必要な検査を行うことを業務内容とする。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      }
+    ]
+  },
+  {
+    "id": 22,
+    "title": "第22問 次の中から誤っている文章をすべて選びなさい。",
+    "instruction": "",
+    "type": "select-incorrect",
+    "options": [
+      {
+        "label": "1",
+        "text": "作業療法士は、厚生労働大臣の免許を持ち、医師の指示の下に、身体に障害のある者に治療体操などの運動を行わせたり、電気刺激、マッサージ、温熱などの物理的手段を加えたりして、主にその基本的運動能力の回復を図ることを業務内容とする。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'><del>作業</del><span class='ins'>理学</span>療法士は、厚生労働大臣の免許を持ち、医師の指示の下に、身体に障害のある者に治療体操などの運動を行わせたり、電気刺激、マッサージ、温熱などの物理的手段を加えたりして、主にその基本的運動能力の回復を図ることを業務内容とする。</div><div class='correctline'>正しい文： <span class='insline'>理学療法士は、厚生労働大臣の免許を持ち、医師の指示の下に、身体に障害のある者に治療体操などの運動を行わせたり、電気刺激、マッサージ、温熱などの物理的手段を加えたりして、主にその基本的運動能力の回復を図ることを業務内容とする。</span></div>"
+      },
+      {
+        "label": "2",
+        "text": "理学療法士は、厚生労働大臣の免許を持ち、身体または精神に障害のある者に、手芸工作その他の作業を行わせ、主としてその応用的動作能力や社会的適応能力の回復を図ることを業務内容とする。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'><del>理学</del><span class='ins'>作業</span>療法士は、厚生労働大臣の免許を持ち、身体または精神に障害のある者に、手芸工作その他の作業を行わせ、主としてその応用的動作能力や社会的適応能力の回復を図ることを業務内容とする。</div><div class='correctline'>正しい文： <span class='insline'>作業療法士は、厚生労働大臣の免許を持ち、身体または精神に障害のある者に、手芸工作その他の作業を行わせ、主としてその応用的動作能力や社会的適応能力の回復を図ることを業務内容とする。</span></div>"
+      },
+      {
+        "label": "3",
+        "text": "臨床工学技士は、厚生労働大臣の免許を持ち、医師の指示の下に、生命維持管理装置の操作及び保守点検を行うことを業務内容とする。生命維持管理装置とは、人の呼吸、循環または代謝の機能の一部を代替し、または補助することが目的とされている装置をいう。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "4",
+        "text": "歯科衛生士は、厚生労働大臣の免許を持ち、歯牙及び口くうの疾患の予防のため歯科医師の直接の指導の下に行う歯石等の除去及びフッ素等薬物の塗布並びに歯科診療の補助並びに歯科衛生士の名称を用いて歯科保健指導を行うことを業務内容とする。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "5",
+        "text": "救急救命士は、厚生労働大臣の免許を持ち、救急救命士の名称を用いて、医師の指示の下に、原則として救急用自動車等の車内において、救急救命処置を行うことを業務内容とする。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      }
+    ]
+  },
+  {
+    "id": 23,
+    "title": "第23問 医療事故と法的責任として誤っている文章をすべて選びなさい。",
+    "instruction": "",
+    "type": "select-incorrect",
+    "options": [
+      {
+        "label": "1",
+        "text": "訴訟とは、示談、調停とも不成立になると、民事訴訟が起こされる。訴訟で損害賠償請求する         法律である。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "2",
+        "text": "免許を取得している医療従事者が罰金以上の刑に処せられた場合、倫理の観点からその適正等を問い、法により免許の取り消し、あるいは業務の一時停止という行政上の責任が問われる。この処分は、任命権者が命ずる。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>免許を取得している医療従事者が罰金以上の刑に処せられた場合、倫理の観点からその適正等を問い、法により免許の取り消し、あるいは業務の一時停止という行政上の責任が問われる。この処分は、<del>任命権者</del><span class='ins'>厚生労働大臣</span>が命ずる。</div><div class='correctline'>正しい文： <span class='insline'>免許を取得している医療従事者が罰金以上の刑に処せられた場合、倫理の観点からその適正等を問い、法により免許の取り消し、あるいは業務の一時停止という行政上の責任が問われる。この処分は、厚生労働大臣が命ずる。</span></div>"
+      },
+      {
+        "label": "3",
+        "text": "示談とは、当事者間でお互いに話し合って、紛争を解決するもので、民法上では調停という。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>示談とは、当事者間でお互いに話し合って、紛争を解決するもので、民法上では<del>調停</del><span class='ins'>和解</span>という。</div><div class='correctline'>正しい文： <span class='insline'>示談とは、当事者間でお互いに話し合って、紛争を解決するもので、民法上では和解という。</span></div>"
+      },
+      {
+        "label": "4",
+        "text": "医療事故で問われる刑事上の責任は、業務上過失致死傷罪である。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "5",
+        "text": "調停とは、示談が不成立の場合、または初めから示談の成立の可能性がないときに、簡易裁判所に調停を申し立て、公平な調停委員を中に入れて解決することをいう。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      }
+    ]
+  },
+  {
+    "id": 24,
+    "title": "第24問 患者影響レベルについて正しい文章をすべて選びなさい。",
+    "instruction": "",
+    "type": "select-incorrect",
+    "options": [
+      {
+        "label": "1",
+        "text": "レベル１は誤った行為を患者に実施したが、結果として患者に影響を及ぼすに至らなかった場合で、障害の程度及び〔継続性〕はなしである。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "2",
+        "text": "レベル２は行った医療又は管理により、患者に影響を与えた、又は何らかの影響を与えた可能性がある場合で、障害の程度及び〔継続性〕は軽度〔一過性〕である。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>レベル２は行った医療又は管理により、患者に影響を与えた、又は何らかの影響を与えた可能性がある場合で、障害の程度及び〔継続性〕は<del>軽度〔一過性〕</del><span class='ins'>なし</span>である。</div><div class='correctline'>正しい文： <span class='insline'>レベル２は行った医療又は管理により、患者に影響を与えた、又は何らかの影響を与えた可能性がある場合で、障害の程度及び〔継続性〕はなしである。</span></div>"
+      },
+      {
+        "label": "3",
+        "text": "レベル３bは行った医療又は管理により、本来必要でなかった治療や処置が必要となった場合で、障害の程度及び〔継続性〕は中・高度〔一過性〕である。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "4",
+        "text": "レベル４は行った医療又は管理により、生活に影響する重大な永続的障害が発生した可能性がある場合で、障害の程度及び〔継続性〕は高度〔死亡〕である。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>レベル４は行った医療又は管理により、生活に影響する重大な永続的障害が発生した可能性がある場合で、障害の程度及び〔継続性〕は高度〔<del>死亡</del><span class='ins'>永続的</span>〕である。</div><div class='correctline'>正しい文： <span class='insline'>レベル４は行った医療又は管理により、生活に影響する重大な永続的障害が発生した可能性がある場合で、障害の程度及び〔継続性〕は高度〔永続的〕である。</span></div>"
+      },
+      {
+        "label": "5",
+        "text": "影響レベル2までが「ヒヤリ・ハット事例（＝インシデント事例）」、レベル3a以上が「医療事故」とする。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>影響レベル<del>2</del><span class='ins'>３ａ</span>までが「ヒヤリ・ハット事例（＝インシデント事例）」、レベル<del>3a</del><span class='ins'>３ｂ</span>以上が「医療事故」とする。</div><div class='correctline'>正しい文： <span class='insline'>影響レベル３ａまでが「ヒヤリ・ハット事例（＝インシデント事例）」、レベル３ｂ以上が「医療事故」とする。</span></div>"
+      }
+    ]
+  },
+  {
+    "id": 25,
+    "title": "第25問 次の中から誤っている文章をすべて選びなさい。",
+    "instruction": "",
+    "type": "select-incorrect",
+    "options": [
+      {
+        "label": "1",
+        "text": "医薬品安全管理責任者は、院長の指名により選任され、医薬品の安全使用を確保するための業務を行う責任者をいう。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "2",
+        "text": "医療安全管理委員会の委員長は、原則として副院長、副委員長は、原則として医療安全管理者及び診療部長とする。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "3",
+        "text": "医療安全管理者は、医療安全に関する十分な知識を有する者とする（医療安全管理者の養成を目的とした研修で、通算して４0時間以上の研修を終了した者）。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "4",
+        "text": "医療安全管理者は、院長の指名により選任され、医療安全推進担当者を指導し、連携・協同の上、特定の部門ではなく病院全般にかかる医療安全対策の立案・実行・評価を含め、医療安全管理のための組織横断的な活動を行う者をいい、副院長をもって充てるものとする。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>医療安全管理者は、院長の指名により選任され、医療安全推進担当者を指導し、連携・協同の上、特定の部門ではなく病院全般にかかる医療安全対策の立案・実行・評価を含め、医療安全管理のための組織横断的な活動を行う者をいい、<del>副院</del><span class='ins'>看護師</span>長をもって充てるものとする。</div><div class='correctline'>正しい文： <span class='insline'>医療安全管理者は、院長の指名により選任され、医療安全推進担当者を指導し、連携・協同の上、特定の部門ではなく病院全般にかかる医療安全対策の立案・実行・評価を含め、医療安全管理のための組織横断的な活動を行う者をいい、看護師長をもって充てるものとする。</span></div>"
+      },
+      {
+        "label": "5",
+        "text": "医療事故調査制度に該当する事案であって、かつ、院内の医療安全管理委員会で、原因等について十分な結論づけができない場合等には、院長は、第三者的立場から検証を行うため、グループ担当者及び専門医又は看護師等の外部委員を参画させた拡大医療安全検討委員会を開催する。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'><del>医療事故調査制度に該当する</del><span class='ins'>医療事故調査制度に該当しない</span>事案であって、かつ、院内の医療安全管理委員会で、原因等について十分な結論づけができない場合等には、院長は、第三者的立場から検証を行うため、グループ担当者及び専門医又は看護師等の外部委員を参画させた拡大医療安全検討委員会を開催する。</div><div class='correctline'>正しい文： <span class='insline'>医療事故調査制度に該当しない事案であって、かつ、院内の医療安全管理委員会で、原因等について十分な結論づけができない場合等には、院長は、第三者的立場から検証を行うため、グループ担当者及び専門医又は看護師等の外部委員を参画させた拡大医療安全検討委員会を開催する。</span></div>"
+      }
+    ]
+  },
+  {
+    "id": 26,
+    "title": "第26問 次の中から誤っている文章をすべて選びなさい。",
+    "instruction": "",
+    "type": "select-incorrect",
+    "options": [
+      {
+        "label": "1",
+        "text": "外来患者数とは、０時から２４時までに新来、再来、往診を問わず、受け付けた患者数である。外来の同一患者が２以上の診療科で診療を受けた場合は、それぞれの診療科の外来患者数とする。また、ある診療科の在院患者が、他の診療科において外来診療を受診した場合も、その診療科の外来患者とする。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "2",
+        "text": "１日平均在院患者数とは在院患者延数を暦日数で除した数である。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "3",
+        "text": "在院患者数とは、２４時現在に在院していた患者数（外泊患者を含む）であり、０時過ぎに入院し、当日の２４時前に退院（死亡を含む）した者も在院患者数に算入される。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>在院患者数とは、２４時現在に在院していた患者数（外泊患者を含む）であり、０時過ぎに入院し、当日の２４時前に退院（死亡を含む）した者<del>も在院患者数に算入される。</del><span class='ins'>は在院患者数に算入しない。</span></div><div class='correctline'>正しい文： <span class='insline'>在院患者数とは、２４時現在に在院していた患者数（外泊患者を含む）であり、０時過ぎに入院し、当日の２４時前に退院（死亡を含む）した者は在院患者数に算入しない。</span></div>"
+      },
+      {
+        "label": "4",
+        "text": "病床利用率は（1日平均在患者数÷病床数）×100で算出される。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "5",
+        "text": "平均在院日数は（在院患者延数÷（新入院患者＋退院患者数））で算出される。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>平均在院日数は（在院患者延数÷（新入院患者＋退院患者数）<span class='ins'>÷2</span>）で算出される。</div><div class='correctline'>正しい文： <span class='insline'>平均在院日数は（在院患者延数÷（新入院患者＋退院患者数）÷2）で算出される。</span></div>"
+      }
+    ]
+  },
+  {
+    "id": 27,
+    "title": "第27問 次の中から正しい文章をすべて選びなさい。",
+    "instruction": "",
+    "type": "select-incorrect",
+    "options": [
+      {
+        "label": "1",
+        "text": "病床回転数は（暦日数÷平均在院日数）で算出される。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "2",
+        "text": "外来新患率は（新外来患者数÷外来患者延数）×100で算出される。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "3",
+        "text": "薬品使用率は（薬品消費額（A類）÷薬品収入額（A類））×100で算出される。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>薬品使用率は（薬品<del>消費</del><span class='ins'>収入</span>額（A類）÷薬品<del>収入</del><span class='ins'>消費</span>額（A類））×100で算出される。</div><div class='correctline'>正しい文： <span class='insline'>薬品使用率は（薬品収入額（A類）÷薬品消費額（A類））×100で算出される。</span></div>"
+      },
+      {
+        "label": "4",
+        "text": "在院患者1人1日当たり診療点数は（診療点数÷１日平均在院患者数）で算出される。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>在院患者1人1日当たり診療点数は（診療点数÷<del>１日平均在院患者数</del><span class='ins'>在院患者延数</span>）で算出される。</div><div class='correctline'>正しい文： <span class='insline'>在院患者1人1日当たり診療点数は（診療点数÷在院患者延数）で算出される。</span></div>"
+      },
+      {
+        "label": "5",
+        "text": "平均通院回数は（新外来患者数÷外来患者延数）で算出される。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>平均通院回数は（<del>新</del>外来患者数÷<span class='ins'>新</span>外来患者延数）で算出される。</div><div class='correctline'>正しい文： <span class='insline'>平均通院回数は（外来患者数÷新外来患者延数）で算出される。</span></div>"
+      }
+    ]
+  },
+  {
+    "id": 28,
+    "title": "第28問 次の中から誤っている文章をすべて選びなさい。",
+    "instruction": "",
+    "type": "select-incorrect",
+    "options": [
+      {
+        "label": "1",
+        "text": "部下に対してどのような研修が必要か、という「研修ニーズ」は監督者が一番よく把握できる立場にあるため、監督者は部下に期待する能力の水準や実際の能力等を留意し部下に対して適切な研修を受講させるように心掛ける必要がある。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "2",
+        "text": "職場研修とは、職場の監督者が本来の業務を通じて、または、業務に関連させつつ部下を指導する形で行われるものである。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>職場研修とは、職場の<del>監督者</del><span class='ins'>上司</span>が本来の業務を通じて、または、業務に関連させつつ部下を指導する形で行われるものである。</div><div class='correctline'>正しい文： <span class='insline'>職場研修とは、職場の上司が本来の業務を通じて、または、業務に関連させつつ部下を指導する形で行われるものである。</span></div>"
+      },
+      {
+        "label": "3",
+        "text": "職場研修は、①研修ニーズと指導目標の明確化、②指導の具体的な方法の決定、③研修の実施、④事後の評価を意図的、計画的に行わなければならない。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "4",
+        "text": "職員が本来行うこととされている業務から離れて、職務の一環として行われるものを、「職場研修」に対して「職場外研修」といい、例えば、新規採用者研修や中堅職員研修等をいう。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "5",
+        "text": "「職場研修」と「職場外研修」の関係としては、「職場研修」において原則的体系的な知識や技能を習得させ、それを職場で実践させつつ「職場外研修」で原則の弾力的な応用を指導する、というように両社は補完関係にある。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>「職場研修」と「職場外研修」の関係としては、「<del>職場研修</del><span class='ins'>職場外研修</span>」において原則的体系的な知識や技能を習得させ、それを職場で実践させつつ「<del>職場外研修</del><span class='ins'>職場研修</span>」で原則の弾力的な応用を指導する、というように両社は補完関係にある。</div><div class='correctline'>正しい文： <span class='insline'>「職場研修」と「職場外研修」の関係としては、「職場外研修」において原則的体系的な知識や技能を習得させ、それを職場で実践させつつ「職場研修」で原則の弾力的な応用を指導する、というように両社は補完関係にある。</span></div>"
+      }
+    ]
+  },
+  {
+    "id": 29,
+    "title": "第29問 次の中から誤っている文章をすべて選びなさい。",
+    "instruction": "",
+    "type": "select-incorrect",
+    "options": [
+      {
+        "label": "1",
+        "text": "リーダーシップの定義は「集団の目標や課題を達成するために、その集団内の一部の人がほかの人に影響を及ぼす現象」とされている。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "2",
+        "text": "指示型はリーダーが自分に権限を集中して、部下に一方的に指示して業務させる型である。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "3",
+        "text": "関与型はリーダーが業務の遂行について部下に相談し、関与させて業務をさせる型である。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'><del>関与</del><span class='ins'>参加</span>型はリーダーが業務の遂行について部下に相談し、関与させて業務をさせる型である。</div><div class='correctline'>正しい文： <span class='insline'>参加型はリーダーが業務の遂行について部下に相談し、関与させて業務をさせる型である。</span></div>"
+      },
+      {
+        "label": "4",
+        "text": "委任型はリーダーが部下に権限を譲渡して、部下の判断で業務させる型である。",
+        "correct": false,
+        "explanation": "",
+        "explanation_html": ""
+      },
+      {
+        "label": "5",
+        "text": "下の状況との関係だけでいえば、業務遂行能力や意欲が高まるにつれて、部下の自主性を広げることが望ましいことから、一般的には「指示型」から「委任型」へ、さらには「関与型」へと移行していく方法が適切であると考えられる。",
+        "correct": true,
+        "explanation": "",
+        "explanation_html": "<div class='diffline'>下の状況との関係だけでいえば、業務遂行能力や意欲が高まるにつれて、部下の自主性を広げることが望ましいことから、一般的には「指示型」から「<del>委任</del><span class='ins'>参加</span>型」へ、さらには「<del>関与</del><span class='ins'>委任</span>型」へと移行していく方法が適切であると考えられる。</div><div class='correctline'>正しい文： <span class='insline'>下の状況との関係だけでいえば、業務遂行能力や意欲が高まるにつれて、部下の自主性を広げることが望ましいことから、一般的には「指示型」から「参加型」へ、さらには「委任型」へと移行していく方法が適切であると考えられる。</span></div>"
+      }
+    ]
+  }
+];
+
+</script>
+<script>
+// DATA loaded from external file
+
+
+
+// 配列をシャッフルする関数（Fisher–Yates法）
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+// 各問題の選択肢をシャッフル
+DATA.forEach(q => {
+  q.options = shuffle(q.options);
+});
+
+function render(){
+  const app = document.getElementById('app');
+  app.innerHTML = "";
+  DATA.forEach(q => { 
+    const card = document.createElement('section');
+    card.className = 'card';
+    const h = document.createElement('div');
+    h.className = 'title';
+    h.textContent = (q.title || '').replace(/\s+/g,' ');
+    const instr = document.createElement('div');
+    instr.className = 'instruction';
+    instr.textContent = q.instruction || (q.type==='select-incorrect' ? '誤っている選択肢をすべて選んでください。' : '正しい選択肢をすべて選んでください。');
+    card.appendChild(h);
+    card.appendChild(instr);
+    const form = document.createElement('div');
+    q.options.forEach((o, i) => {
+      const opt = document.createElement('label');
+      opt.className = 'opt';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.name = `q_${q.id}`;
+      cb.value = i;
+      const span = document.createElement('div');
+      const safeText = (o.text || '').replace(/</g,'&lt;');
+      span.innerHTML = `${safeText}`;
+      opt.appendChild(cb);
+      opt.appendChild(span);
+      form.appendChild(opt);
+    });
+    card.appendChild(form);
+    const controls = document.createElement('div');
+    controls.className = 'controls';
+    const btn = document.createElement('button');
+    btn.textContent = '採点';
+    btn.onclick = () => {
+      const labels = form.querySelectorAll('.opt');
+      q.options.forEach((o, idx) => {
+        const cb = form.querySelector(`input[value="${idx}"]`);
+        const selected = cb.checked;
+        const isCorrect = !!o.correct;
+        labels[idx].classList.remove('correct','incorrect','sel');
+        if(selected){
+          labels[idx].classList.add(isCorrect ? 'correct':'incorrect','sel');
+        }
+        let exp = labels[idx].querySelector('.explain');
+        if(!exp && (isCorrect || selected) && (o.explanation_html || o.explanation)){
+          exp = document.createElement('div');
+          exp.className = 'explain';
+          if(o.explanation_html){
+            exp.innerHTML = o.explanation_html;
+          }else{
+            exp.textContent = o.explanation;
+          }
+          labels[idx].appendChild(exp);
+        }
+      });
+      const exact = q.options.every((o, idx)=>{
+        const selected = form.querySelector(`input[value="${idx}"]`).checked;
+        return (!!o.correct) === selected;
+      });
+      const scoreArea = card.querySelector('.score') || (()=>{const s=document.createElement('div'); s.className='score'; card.appendChild(s); return s;})();
+      scoreArea.textContent = exact ? '✅ 正解！' : '❌ 不正解';
+    };
+    const btnReset = document.createElement('button');
+    btnReset.textContent = 'リセット';
+    btnReset.className = 'secondary';
+    btnReset.onclick = () => {
+      form.querySelectorAll('input[type="checkbox"]').forEach(cb=>cb.checked=false);
+      form.querySelectorAll('.opt').forEach(o=>o.classList.remove('correct','incorrect','sel'));
+      form.querySelectorAll('.explain').forEach(e=>e.remove());
+      const s = card.querySelector('.score'); if(s) s.remove();
+    };
+    controls.appendChild(btn);
+    controls.appendChild(btnReset);
+    card.appendChild(controls);
+    app.appendChild(card);
+  });
+  const note = document.createElement('div');
+  note.className = 'footer';
+  note.innerHTML = '※ 自動抽出の都合で一部の肢が欠落・誤判定する可能性があります。原資料に照らして随時修正してください。';
+  app.appendChild(note);
+}
+render();
+</script>
+</body>
+</html>
