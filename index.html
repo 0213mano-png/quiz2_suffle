@@ -1321,7 +1321,7 @@ function render(){
     h.textContent = (q.title || '').replace(/\s+/g,' ');
     const instr = document.createElement('div');
     instr.className = 'instruction';
-    instr.textContent = q.instruction || (q.type==='select-incorrect' ? '誤っている選択肢をすべて選んでください。' : '正しい選択肢をすべて選んでください。');
+    instr.textContent = ''; 
     card.appendChild(h);
     card.appendChild(instr);
     const form = document.createElement('div');
