@@ -1319,11 +1319,6 @@ function render(){
     const h = document.createElement('div');
     h.className = 'title';
     h.textContent = (q.title || '').replace(/\s+/g,' ');
-    const instr = document.createElement('div');
-    instr.className = 'instruction';
-    instr.textContent = ''; 
-    card.appendChild(h);
-    card.appendChild(instr);
     const form = document.createElement('div');
     q.options.forEach((o, i) => {
       const opt = document.createElement('label');
